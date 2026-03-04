@@ -1,0 +1,77 @@
+/**
+ * WP Crawl Intelligence Admin Styles
+ */
+
+.wpci-dashboard {
+	margin-top: 20px;
+}
+
+.wpci-grid {
+	display: grid;
+	grid-template-columns: repeat( auto-fit, minmax( 300px, 1fr ) );
+	gap: 20px;
+}
+
+.wpci-card {
+	background: #fff;
+	padding: 20px;
+	border-radius: 8px;
+	box-shadow: 0 4px 6px rgba( 0, 0, 0, 0.1 );
+	transition: transform 0.2s ease-in-out;
+}
+
+.wpci-card:hover {
+	transform: perspective( 1000px ) rotateX( 1deg ) translateY( -5px );
+}
+
+.wpci-card h3 {
+	margin-top: 0;
+	color: #2c3338;
+	font-weight: 600;
+}
+
+.score-display {
+	display: flex;
+	align-items: baseline;
+	justify-content: center;
+	padding: 20px 0;
+}
+
+.score-value {
+	font-size: 48px;
+	font-weight: bold;
+}
+
+.score-value.green { color: #2ecc71; }
+.score-value.yellow { color: #f1c40f; }
+.score-value.red { color: #e74c3c; }
+
+.score-display p {
+	font-size: 20px;
+	color: #888;
+	margin-left: 5px;
+}
+
+.chart-card {
+	grid-column: span 2;
+}
+
+.wpci-actions {
+	margin-top: 20px;
+}
+
+.wp-list-table th, .wp-list-table td {
+	padding: 12px 15px;
+}
+
+.description {
+	color: #646970;
+	font-size: 13px;
+	font-style: italic;
+}
+
+/* Tooltip style for SVG circles */
+circle:hover {
+	fill: #000;
+	cursor: pointer;
+}
