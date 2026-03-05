@@ -385,7 +385,12 @@ class CrawlAnalyzer {
 		$total_hits = $wpdb->get_var( "SELECT COUNT(*) FROM $logs_table" );
 		$pattern_hits = $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM $logs_table WHERE url LIKE %s", '%' . $pattern . '%' ) );
 
-		if ( ! $total_hits ) return 0;
+		if ( ! $total_hits ) {
+			return [
+				'saved_percentage' => 0,
+				'saved_units'      => 0
+			];
+		}
 
 		return [
 			'saved_percentage' => round( ( $pattern_hits / $total_hits ) * 100, 1 ),
