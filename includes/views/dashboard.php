@@ -1,314 +1,290 @@
 <?php
 /**
- * Dashboard View
+ * WP Crawl Intelligence - Modern SaaS Admin Dashboard
  */
-if ( ! defined( 'ABSPATH' ) ) {
-	exit;
-}
+if ( ! defined( 'ABSPATH' ) ) exit;
+
+// SVG Icons for SaaS look
+$icons = [
+    'budget'   => '<svg class="wpci-icon" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>',
+    'capacity' => '<svg class="wpci-icon" viewBox="0 0 24 24"><path d="M21 3H3c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h18c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H3V5h18v14zM5 15h2V7H5v8zm12-8v8h2V7h-2zM9 15h2V9H9v6zm4 0h2V11h-2v4z"/></svg>',
+    'ai'       => '<svg class="wpci-icon" viewBox="0 0 24 24"><path d="M11 2h2v5h-2V2zm0 15h2v5h-2v-5zm11-6v2h-5v-2h5zM7 11v2H2v-2h5zm12.364-5.95l1.414 1.414-3.535 3.536-1.414-1.415 3.535-3.535zM5.636 17.536l1.414 1.414-3.535 3.535-1.414-1.414 3.535-3.535zm12.728 0l1.414-1.414 3.536 3.535-1.415 1.414-3.535-3.535zM5.636 6.464L4.222 5.05l3.535-3.535 1.414 1.414-3.535 3.535z"/></svg>',
+    'sitemap'  => '<svg class="wpci-icon" viewBox="0 0 24 24"><path d="M12 2L4 5v6c0 5.55 3.84 10.74 8 12 4.16-1.26 8-6.45 8-12V5l-8-3zm0 18c-2.3 0-4.4-1.6-5.4-3.8l1.4-.4c.7 1.6 2.3 2.7 4 2.7 1.7 0 3.3-1.1 4-2.7l1.4.4c-1 2.2-3.1 3.8-5.4 3.8z"/></svg>',
+    'waste'    => '<svg class="wpci-icon" viewBox="0 0 24 24"><path d="M16 1h-8l-1 1v2h10V2l-1-1zm-9 5l1 15c0 1.1.9 2 2 2h4c1.1 0 2-.9 2-2l1-15H7z"/></svg>',
+    'path'     => '<svg class="wpci-icon" viewBox="0 0 24 24"><path d="M12 11c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm6 2c0-3.31-2.69-6-6-6s-6 2.69-6 6c0 2.22 1.21 4.15 3 5.19l1-1.74c-1.19-.7-2-1.97-2-3.45 0-2.21 1.79-4 4-4s4 1.79 4 4c0 1.48-.81 2.75-2 3.45l1 1.74c1.79-1.04 3-2.97 3-5.19z"/></svg>',
+    'render'   => '<svg class="wpci-icon" viewBox="0 0 24 24"><path d="M4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm16-4H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg>',
+];
 ?>
 
 <div class="wrap wpci-dashboard">
-	<h1>WP Crawl Intelligence - Premium Dashboard</h1>
+    <div class="wpci-header">
+        <h1>
+            <span class="dashicons dashicons-shield-alt" style="font-size: 32px; width: 32px; height: 32px; color: var(--wpci-primary);"></span>
+            WP Crawl Intelligence <span class="wpci-badge blue">Premium</span>
+        </h1>
+        <p class="description">Modern Technical SEO Intelligence & Crawl Command Center.</p>
+    </div>
 
-	<?php if ( ! empty( $alerts ) ) : ?>
-		<div class="notice notice-warning is-dismissible">
-			<?php foreach ( $alerts as $alert ) : ?>
-				<p><strong><?php echo esc_html( ucfirst( $alert['type'] ) ); ?>:</strong> <?php echo esc_html( $alert['message'] ); ?></p>
-			<?php endforeach; ?>
-		</div>
-	<?php endif; ?>
+    <?php if ( ! empty( $alerts ) ) : ?>
+        <div class="wpci-grid full-grid">
+            <div class="wpci-card advisor-card">
+                <h3><span class="dashicons dashicons-warning" style="color: var(--wpci-danger);"></span> Critical Crawl Health Issues</h3>
+                <div class="recommendations-list">
+                    <?php foreach ( $alerts as $alert ) : ?>
+                        <div class="rec-item" style="background: var(--wpci-danger-light); border-left: 4px solid var(--wpci-danger);">
+                            <span class="dashicons dashicons-warning problem-icon" style="color: var(--wpci-danger);"></span>
+                            <div>
+                                <strong>Alert:</strong> <?php echo esc_html( $alert['message'] ); ?>
+                            </div>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
+            </div>
+        </div>
+    <?php endif; ?>
 
-	<!-- Row 1: Core Metrics & AI Advisor -->
-	<div class="wpci-grid">
-		<div class="wpci-card info-card">
-			<h3>Crawl Budget Score</h3>
-			<div class="score-display">
-				<span class="score-value <?php echo ( $score > 80 ) ? 'green' : ( ( $score > 50 ) ? 'yellow' : 'red' ); ?>">
-					<?php echo esc_html( $score ); ?>
-				</span>
-				<p>/100</p>
-			</div>
-			<p class="description">Overall efficiency of bot activity.</p>
-		</div>
+    <!-- Top KPI Row -->
+    <div class="wpci-grid three-col">
+        <div class="wpci-card">
+            <div class="wpci-card-header">
+                <h3><?php echo $icons['budget']; ?> Crawl Budget Score</h3>
+                <span class="wpci-badge <?php echo ($score > 80) ? 'green' : 'yellow'; ?>">Last 7 Days</span>
+            </div>
+            <div class="score-display">
+                <span class="score-value <?php echo ($score > 80) ? 'green' : (($score > 50) ? 'yellow' : 'red'); ?>">
+                    <?php echo esc_html( $score ); ?>
+                </span>
+                <p>/100</p>
+            </div>
+            <p class="description">Overall efficiency ranking based on bot success rates & performance.</p>
+        </div>
 
-		<div class="wpci-card info-card">
-			<h3>Crawl Capacity Estimate</h3>
-			<div class="score-display">
-				<span class="score-value green"><?php echo esc_html( number_format( $crawl_capacity ) ); ?></span>
-				<p>URLs / Day</p>
-			</div>
-			<p class="description">Calculated healthy crawl ceiling.</p>
-		</div>
+        <div class="wpci-card">
+            <div class="wpci-card-header">
+                <h3><?php echo $icons['capacity']; ?> Crawl Capacity</h3>
+                <span class="wpci-badge green">Healthy</span>
+            </div>
+            <div class="score-display">
+                <span class="score-value green"><?php echo esc_html( number_format( $crawl_capacity ) ); ?></span>
+                <p>URLs / Day</p>
+            </div>
+            <p class="description">Calculated healthy crawl ceiling based on current server TTFB.</p>
+        </div>
 
-		<div class="wpci-card advisor-card">
-			<h3>8. AI Technical SEO Advisor</h3>
-			<div class="recommendations-list">
-				<?php if ( ! empty( $ai_recommendations ) ) : ?>
-					<?php foreach ( $ai_recommendations as $rec ) : ?>
-						<div class="rec-item">
-							<span class="dashicons dashicons-warning problem-icon"></span>
-							<div>
-								<strong>Problem:</strong> <?php echo esc_html( $rec['problem'] ); ?><br>
-								<strong>Solution:</strong> <span class="solution-text"><?php echo esc_html( $rec['solution'] ); ?></span>
-							</div>
-						</div>
-					<?php endforeach; ?>
-				<?php else : ?>
-					<p><span class="dashicons dashicons-yes green-icon"></span> No critical issues found.</p>
-				<?php endif; ?>
-			</div>
-		</div>
-	</div>
+        <div class="wpci-card advisor-card">
+            <div class="wpci-card-header">
+                <h3><?php echo $icons['ai']; ?> AI Technical SEO Advisor</h3>
+                <span class="wpci-badge blue">Intelligence</span>
+            </div>
+            <div class="recommendations-list">
+                <?php if ( ! empty( $ai_recommendations ) ) : ?>
+                    <?php foreach ( array_slice($ai_recommendations, 0, 2) as $rec ) : ?>
+                        <div class="rec-item">
+                            <span class="dashicons dashicons-lightbulb problem-icon"></span>
+                            <div style="font-size: 11px;">
+                                <strong>Rec:</strong> <span class="solution-text"><?php echo esc_html( $rec['solution'] ); ?></span>
+                            </div>
+                        </div>
+                    <?php endforeach; ?>
+                <?php else : ?>
+                    <p style="font-size: 13px; margin: 10px 0;"><span class="dashicons dashicons-yes-alt green-icon"></span> No critical crawl optimizations needed!</p>
+                <?php endif; ?>
+            </div>
+        </div>
+    </div>
 
-	<!-- Row 2: Indexing & Waste -->
-	<div class="wpci-grid">
-		<div class="wpci-card table-card">
-			<h3>1. Sitemap-Log Gap</h3>
-			<p class="description">Unloved pages (in sitemap, not crawled 30d).</p>
-			<ul class="wpci-log-list">
-				<?php if ( ! empty( $unloved_pages ) ) : ?>
-					<?php foreach ( array_slice( $unloved_pages, 0, 5 ) as $url ) : ?>
-						<li><?php echo esc_url( $url ); ?></li>
-					<?php endforeach; ?>
-				<?php else : ?>
-					<li>All sitemap URLs recently crawled!</li>
-				<?php endif; ?>
-			</ul>
-		</div>
+    <!-- Main Chart Section -->
+    <div class="wpci-grid full-grid">
+        <div class="wpci-card chart-card">
+            <div class="wpci-card-header">
+                <h3><span class="dashicons dashicons-chart-line"></span> Crawl vs Traffic Intelligence (Last 14 Days)</h3>
+                <div class="wpci-chart-legend">
+                    <div class="legend-item"><span class="dot blue"></span> Bots</div>
+                    <div class="legend-item"><span class="dot green"></span> Human</div>
+                </div>
+            </div>
+            <div id="wpciBotChart" style="width: 100%; height: 260px;"></div>
+        </div>
+    </div>
 
-		<div class="wpci-card table-card">
-			<h3>2. Parameter Crawl Waste</h3>
-			<p class="description">Inefficient query string crawling.</p>
-			<table class="wp-list-table widefat fixed striped">
-				<thead><tr><th>Path</th><th>Hits</th></tr></thead>
-				<tbody>
-					<?php if ( ! empty( $parameter_waste ) ) : ?>
-						<?php foreach ( array_slice( $parameter_waste, 0, 5 ) as $row ) : ?>
-							<tr>
-								<td><?php echo esc_url( wp_parse_url( $row->url, PHP_URL_PATH ) ); ?></td>
-								<td><?php echo esc_html( $row->waste_hits ); ?></td>
-							</tr>
-						<?php endforeach; ?>
-					<?php else : ?>
-						<tr><td colspan="2">No waste detected.</td></tr>
-					<?php endif; ?>
-				</tbody>
-			</table>
-		</div>
-	</div>
+    <!-- Secondary Insights Grid -->
+    <div class="wpci-grid two-col">
+        <!-- Sitemap Gap card -->
+        <div class="wpci-card">
+            <div class="wpci-card-header">
+                <h3><?php echo $icons['sitemap']; ?> 1. Sitemap-Log Gap Analyzer</h3>
+                <span class="wpci-badge yellow">Discovery Fix</span>
+            </div>
+            <p class="description">Pages in your sitemap that bots have ignored for 30+ days.</p>
+            <div class="wpci-table-wrapper">
+                <table class="wp-list-table widefat fixed striped">
+                    <thead><tr><th>URL Pathway</th><th>Recency</th></tr></thead>
+                    <tbody>
+                        <?php if ( ! empty( $unloved_pages ) ) : ?>
+                            <?php foreach ( array_slice( $unloved_pages, 0, 4 ) as $url ) : ?>
+                                <li><span class="dashicons dashicons-warning" style="color: var(--wpci-warning);"></span> <?php echo esc_url( $url ); ?></li>
+                                <tr><td><?php echo esc_html( wp_parse_url($url, PHP_URL_PATH) ); ?></td><td><span class="wpci-badge red">30d+ Unseen</span></td></tr>
+                            <?php endforeach; ?>
+                        <?php else : ?>
+                            <tr><td colspan="2">Healthy! All sitemap URLs recently crawled.</td></tr>
+                        <?php endif; ?>
+                    </tbody>
+                </table>
+            </div>
+        </div>
 
-	<!-- Row 3: Top Content & Volume -->
-	<div class="wpci-grid half-grid">
-		<div class="wpci-card table-card">
-			<h3>Top Crawled URLs (Last 7 Days)</h3>
-			<table class="wp-list-table widefat fixed striped">
-				<thead><tr><th>URL</th><th>Hits</th></tr></thead>
-				<tbody>
-					<?php foreach ( array_slice( $top_urls, 0, 8 ) as $row ) : ?>
-						<tr><td><?php echo esc_url( $row->url ); ?></td><td><?php echo esc_html( $row->hit_count ); ?></td></tr>
-					<?php endforeach; ?>
-				</tbody>
-			</table>
-		</div>
-		<div class="wpci-card chart-card">
-			<h3>Daily Bot Volume</h3>
-			<canvas id="wpciBotChart" style="max-height: 250px;"></canvas>
-		</div>
-	</div>
+        <!-- Budget Simulator -->
+        <div class="wpci-card simulator-card">
+            <div class="wpci-card-header">
+                <h3><span class="dashicons dashicons-calc"></span> 7. Crawl Budget Simulator</h3>
+                <span class="wpci-badge green">ROI Potential</span>
+            </div>
+            <p class="description">Forecast savings by optimizing common waste patterns.</p>
+            <div class="score-display">
+                <span class="sim-value" style="font-size: 36px; color: var(--wpci-primary); font-weight: 800;"><?php echo esc_html( $budget_simulator['saved_percentage'] ); ?>%</span>
+                <p>Recovery</p>
+            </div>
+            <div class="robots-snippet" style="background: var(--wpci-primary-light); color: var(--wpci-primary); border: 1px dashed var(--wpci-primary);">
+                Blocking <strong>/tag/*</strong> and <strong>/search/*</strong> would recover <strong><?php echo esc_html( $budget_simulator['saved_units'] ); ?></strong> crawl units.
+            </div>
+        </div>
+    </div>
 
-	<!-- Row 4: Paths & Depth -->
-	<div class="wpci-grid">
-		<div class="wpci-card table-card">
-			<h3>3. Redirect Chain Monitor</h3>
-			<table class="wp-list-table widefat fixed striped">
-				<thead><tr><th>URL</th><th>Status</th><th>Hops</th></tr></thead>
-				<tbody>
-					<?php if ( ! empty( $redirect_chains ) ) : ?>
-						<?php foreach ( array_slice( $redirect_chains, 0, 5 ) as $row ) : ?>
-							<tr><td><?php echo esc_url( $row->url ); ?></td><td><?php echo esc_html( $row->status_code ); ?></td><td><?php echo esc_html( $row->redirect_count ); ?></td></tr>
-						<?php endforeach; ?>
-					<?php else : ?>
-						<tr><td colspan="3">Clean redirects.</td></tr>
-					<?php endif; ?>
-				</tbody>
-			</table>
-		</div>
-		<div class="wpci-card table-card">
-			<h3>4. Post Type Energy</h3>
-			<table class="wp-list-table widefat fixed striped">
-				<thead><tr><th>Type</th><th>Hits</th><th>TTFB</th></tr></thead>
-				<tbody>
-					<?php foreach ( array_slice( $budget_by_type, 0, 5 ) as $row ) : ?>
-						<tr><td><strong><?php echo esc_html( ucfirst($row->post_type) ); ?></strong></td><td><?php echo esc_html($row->hit_count); ?></td><td><?php echo esc_html(number_format($row->avg_time, 2)); ?>s</td></tr>
-					<?php endforeach; ?>
-				</tbody>
-			</table>
-		</div>
-		<div class="wpci-card table-card">
-			<h3>5. Soft 404 Detection</h3>
-			<table class="wp-list-table widefat fixed striped">
-				<thead><tr><th>URL</th><th>Size</th></tr></thead>
-				<tbody>
-					<?php if ( ! empty( $soft_404s ) ) : ?>
-						<?php foreach ( array_slice( $soft_404s, 0, 5 ) as $row ) : ?>
-							<tr><td><?php echo esc_url($row->url); ?></td><td><?php echo esc_html(round($row->content_length/1024, 1)); ?>KB</td></tr>
-						<?php endforeach; ?>
-					<?php else : ?>
-						<tr><td colspan="2">No thin pages.</td></tr>
-					<?php endif; ?>
-				</tbody>
-			</table>
-		</div>
-	</div>
+    <!-- Mid Grid Modules -->
+    <div class="wpci-grid three-col">
+        <div class="wpci-card">
+            <div class="wpci-card-header">
+                <h3><?php echo $icons['waste']; ?> 2. Parameter Waste</h3>
+            </div>
+            <table class="wp-list-table widefat fixed striped">
+                <thead><tr><th>Pattern</th><th>Hits</th></tr></thead>
+                <tbody>
+                    <?php if ( ! empty( $parameter_waste ) ) : ?>
+                        <?php foreach ( array_slice( $parameter_waste, 0, 4 ) as $row ) : ?>
+                            <tr><td><code><?php echo esc_html( substr(wp_parse_url($row->url, PHP_URL_QUERY), 0, 15) ); ?>...</code></td><td><?php echo esc_html($row->waste_hits); ?></td></tr>
+                        <?php endforeach; ?>
+                    <?php else : ?>
+                        <tr><td colspan="2">No waste detected.</td></tr>
+                    <?php endif; ?>
+                </tbody>
+            </table>
+        </div>
 
-	<!-- Row 5: Latency & Mobile -->
-	<div class="wpci-grid">
-		<div class="wpci-card table-card">
-			<h3>6. Bot Latency Heatmap</h3>
-			<table class="wp-list-table widefat fixed striped">
-				<thead><tr><th>Bot</th><th>Area</th><th>Latency</th></tr></thead>
-				<tbody>
-					<?php foreach ( array_slice( $latency_heatmap, 0, 5 ) as $row ) : ?>
-						<tr class="<?php echo ($row->avg_ttfb > 1) ? 'slow-row' : ''; ?>"><td><?php echo esc_html($row->bot_type); ?></td><td><?php echo esc_html($row->url_cluster); ?></td><td><?php echo esc_html(number_format($row->avg_ttfb, 2)); ?>s</td></tr>
-					<?php endforeach; ?>
-				</tbody>
-			</table>
-		</div>
-		<div class="wpci-card table-card">
-			<h3>8. Mobile-First Parity</h3>
-			<table class="wp-list-table widefat fixed striped">
-				<thead><tr><th>Bot</th><th>Agent</th><th>Hits</th></tr></thead>
-				<tbody>
-					<?php foreach ( $mobile_parity as $row ) : ?>
-						<tr><td><?php echo esc_html($row->bot_type); ?></td><td><?php echo esc_html($row->device_type); ?></td><td><?php echo esc_html($row->hit_count); ?></td></tr>
-					<?php endforeach; ?>
-				</tbody>
-			</table>
-		</div>
-	</div>
+        <div class="wpci-card">
+            <div class="wpci-card-header">
+                <h3><span class="dashicons dashicons-redo"></span> 3. Redirect Monitor</h3>
+            </div>
+            <table class="wp-list-table widefat fixed striped">
+                <thead><tr><th>Redirect Chain</th><th>Hops</th></tr></thead>
+                <tbody>
+                    <?php if ( ! empty( $redirect_chains ) ) : ?>
+                        <?php foreach ( array_slice( $redirect_chains, 0, 4 ) as $row ) : ?>
+                            <tr><td><?php echo esc_html( wp_parse_url($row->url, PHP_URL_PATH) ); ?></td><td><span class="wpci-badge yellow"><?php echo esc_html($row->redirect_count); ?> hops</span></td></tr>
+                        <?php endforeach; ?>
+                    <?php else : ?>
+                        <tr><td colspan="2">Direct paths only.</td></tr>
+                    <?php endif; ?>
+                </tbody>
+            </table>
+        </div>
 
-	<!-- Row 6: Discovery & Robots -->
-	<div class="wpci-grid">
-		<div class="wpci-card info-card">
-			<h3>9. Robots.txt Suggestion</h3>
-			<?php if ( ! empty( $robots_suggestions ) ) : ?>
-				<pre class="robots-snippet"><?php echo esc_html( implode( "\n", $robots_suggestions ) ); ?></pre>
-			<?php else : ?>
-				<p>Robots.txt looks optimized.</p>
-			<?php endif; ?>
-		</div>
-		<div class="wpci-card table-card">
-			<h3>10. Discovery Speed</h3>
-			<table class="wp-list-table widefat fixed striped">
-				<thead><tr><th>Post</th><th>Delay</th></tr></thead>
-				<tbody>
-					<?php if ( ! empty( $discovery_speed ) ) : ?>
-						<?php foreach ( $discovery_speed as $row ) : ?>
-							<tr><td><?php echo esc_html($row->post_title); ?></td><td><span class="delay-badge <?php echo ($row->discovery_delay_hours > 24) ? 'red' : 'green'; ?>"><?php echo esc_html($row->discovery_delay_hours); ?>h</span></td></tr>
-						<?php endforeach; ?>
-					<?php else : ?>
-						<tr><td>No recent posts logged.</td></tr>
-					<?php endif; ?>
-				</tbody>
-			</table>
-		</div>
-	</div>
+        <div class="wpci-card">
+            <div class="wpci-card-header">
+                <h3><?php echo $icons['path']; ?> 10. Discovery Speed</h3>
+            </div>
+            <table class="wp-list-table widefat fixed striped">
+                <thead><tr><th>Content</th><th>IDelay</th></tr></thead>
+                <tbody>
+                    <?php if ( ! empty( $discovery_speed ) ) : ?>
+                        <?php foreach ( array_slice($discovery_speed, 0, 4) as $row ) : ?>
+                            <tr><td><?php echo esc_html(substr($row->post_title, 0, 18)); ?>...</td><td><span class="wpci-badge <?php echo ($row->discovery_delay_hours > 24) ? 'red' : 'green'; ?>"><?php echo esc_html($row->discovery_delay_hours); ?>h</span></td></tr>
+                        <?php endforeach; ?>
+                    <?php else : ?>
+                        <tr><td colspan="2">N/A</td></tr>
+                    <?php endif; ?>
+                </tbody>
+            </table>
+        </div>
+    </div>
 
-	<!-- Feature 7: Advanced SEO Intelligence (ROI & Simulator) -->
-	<div class="wpci-grid">
-		<div class="wpci-card info-card simulator-card">
-			<h3>7. Crawl Budget Simulator</h3>
-			<p class="description">Simulated savings if common waste patterns were blocked.</p>
-			<div class="simulator-stats">
-				<div class="sim-stat">
-					<span class="sim-value"><?php echo esc_html( $budget_simulator['saved_percentage'] ); ?>%</span>
-					<span class="sim-label">Potential Budget Recovery</span>
-				</div>
-				<p class="sim-impact">Blocking <strong>/tag/*</strong> and <strong>/search/*</strong> would save <strong><?php echo esc_html( $budget_simulator['saved_units'] ); ?></strong> crawl units per period.</p>
-			</div>
-		</div>
+    <!-- Analytics Cards -->
+    <div class="wpci-grid">
+        <div class="wpci-card">
+            <div class="wpci-card-header">
+                <h3><span class="dashicons dashicons-performance"></span> 6. Latency Heatmap</h3>
+            </div>
+            <table class="wp-list-table widefat fixed striped">
+                <thead><tr><th>Cluster</th><th>latency</th></tr></thead>
+                <tbody>
+                    <?php foreach ( array_slice($latency_heatmap, 0, 4) as $row ) : ?>
+                        <tr><td><?php echo esc_html($row->url_cluster); ?></td><td><span class="wpci-badge <?php echo ($row->avg_ttfb > 0.8) ? 'red' : 'green'; ?>"><?php echo number_format($row->avg_ttfb, 2); ?>s</span></td></tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
+        </div>
 
-		<div class="wpci-card table-card">
-			<h3>7. Crawl ROI Analyzer</h3>
-			<p class="description">Bot energy vs. Content Value (Product = High ROI).</p>
-			<table class="wp-list-table widefat fixed striped">
-				<thead><tr><th>Post Type</th><th>Hits</th><th>Business Value</th></tr></thead>
-				<tbody>
-					<?php foreach ( $crawl_roi as $row ) : ?>
-						<tr>
-							<td><strong><?php echo esc_html( ucfirst( $row->post_type ) ); ?></strong></td>
-							<td><?php echo esc_html( $row->bot_hits ); ?></td>
-							<td><span class="roi-badge <?php echo strtolower( $row->roi_value ); ?>"><?php echo esc_html( $row->roi_value ); ?></span></td>
-						</tr>
-					<?php endforeach; ?>
-				</tbody>
-			</table>
-		</div>
-	</div>
+        <div class="wpci-card">
+            <div class="wpci-card-header">
+                <h3><span class="dashicons dashicons-smartphone"></span> 8. Mobile Parity</h3>
+            </div>
+            <table class="wp-list-table widefat fixed striped">
+                <thead><tr><th>Agent</th><th>Hits</th></tr></thead>
+                <tbody>
+                    <?php foreach ( $mobile_parity as $row ) : ?>
+                        <tr><td><strong><?php echo esc_html($row->device_type); ?></strong></td><td><?php echo esc_html($row->hit_count); ?></td></tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
+        </div>
+        
+        <div class="wpci-card">
+            <div class="wpci-card-header">
+                <h3><span class="dashicons dashicons-money-alt"></span> 7. Crawl ROI Stats</h3>
+            </div>
+            <table class="wp-list-table widefat fixed striped">
+                <thead><tr><th>Type</th><th>Value</th></tr></thead>
+                <tbody>
+                    <?php foreach ( array_slice($crawl_roi, 0, 4) as $row ) : ?>
+                        <tr><td><?php echo esc_html(ucfirst($row->post_type)); ?></td><td><span class="wpci-badge <?php echo ($row->roi_value == 'High') ? 'green' : 'blue'; ?>"><?php echo esc_html($row->roi_value); ?></span></td></tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
+        </div>
+    </div>
 
-	<!-- Feature 3 & 10: Bot Path & Mindmap -->
-	<div class="wpci-grid full-grid">
-		<div class="wpci-card session-card">
-			<h3>3 & 10. Googlebot Mindmap & Crawl Path</h3>
-			<p class="description">Visual flow of the most recent bot navigation sequences.</p>
-			<div class="sessions-container">
-				<?php if ( ! empty( $bot_sessions ) ) : ?>
-					<?php foreach ( $bot_sessions as $session ) : ?>
-						<div class="session-path">
-							<div class="session-header"><strong><?php echo esc_html( $session['bot'] ); ?></strong> (<?php echo esc_html( $session['ip'] ); ?>)</div>
-							<div class="path-flow">
-								<?php foreach ( array_slice($session['path'], 0, 8) as $index => $hit ) : ?>
-									<div class="path-step">
-										<span class="step-url"><?php echo esc_html( wp_parse_url( $hit->url, PHP_URL_PATH ) ); ?></span>
-										<span class="step-meta"><?php echo esc_html( date( 'H:i', strtotime( $hit->timestamp ) ) ); ?></span>
-									</div>
-									<?php if ( $index < count( array_slice($session['path'], 0, 8) ) - 1 ) : ?><span class="step-arrow">&rarr;</span><?php endif; ?>
-								<?php endforeach; ?>
-							</div>
-						</div>
-					<?php endforeach; ?>
-				<?php endif; ?>
-			</div>
-		</div>
-	</div>
+    <!-- Final Path Row -->
+    <div class="wpci-grid full-grid">
+        <div class="wpci-card">
+            <div class="wpci-card-header">
+                <h3><?php echo $icons['path']; ?> 3. Googlebot Crawl Path Reconstruction</h3>
+                <span class="wpci-badge blue">Vision</span>
+            </div>
+            <div class="sessions-container">
+                <?php if ( ! empty( $bot_sessions ) ) : ?>
+                    <?php foreach ( array_slice($bot_sessions, 0, 3) as $session ) : ?>
+                        <div class="session-path">
+                            <div class="session-header"><strong><?php echo esc_html( $session['bot'] ); ?></strong> &bull; <?php echo esc_html( $session['ip'] ); ?></div>
+                            <div class="path-flow">
+                                <?php foreach ( array_slice($session['path'], 0, 6) as $index => $hit ) : ?>
+                                    <div class="path-step">
+                                        <span class="step-url"><?php echo esc_html( wp_parse_url( $hit->url, PHP_URL_PATH ) ); ?></span>
+                                        <span class="step-meta"><?php echo esc_html( date( 'H:i', strtotime( $hit->timestamp ) ) ); ?></span>
+                                    </div>
+                                    <?php if ( $index < count( array_slice($session['path'], 0, 6) ) - 1 ) : ?><span class="step-arrow">&rarr;</span><?php endif; ?>
+                                <?php endforeach; ?>
+                            </div>
+                        </div>
+                    <?php endforeach; ?>
+                <?php endif; ?>
+            </div>
+        </div>
+    </div>
 
-	<style>
-		.wpci-dashboard .wpci-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 15px; margin-bottom: 15px; }
-		.wpci-dashboard .half-grid { grid-template-columns: 2fr 1fr; }
-		.wpci-dashboard .full-grid { grid-template-columns: 1fr; }
-		.wpci-dashboard .wpci-card { background: #fff; border: 1px solid #ccd0d4; padding: 15px; border-radius: 4px; }
-		.wpci-dashboard h3 { margin-top: 0; }
-		.wpci-dashboard .score-display { display: flex; align-items: baseline; gap: 5px; margin: 10px 0; }
-		.wpci-dashboard .score-value { font-size: 28px; font-weight: bold; }
-		.wpci-dashboard .score-value.green { color: #46b450; }
-		.wpci-dashboard .score-value.yellow { color: #ffb900; }
-		.wpci-dashboard .score-value.red { color: #dc3232; }
-		.wpci-dashboard .advisor-card { border-left: 4px solid #2271b1; background: #f0f7ff; }
-		.wpci-dashboard .simulator-card { border-left: 4px solid #46b450; background: #f0fff4; }
-		.wpci-dashboard .sim-value { font-size: 32px; font-weight: bold; color: #46b450; }
-		.wpci-dashboard .sim-label { display: block; font-size: 13px; color: #646970; }
-		.wpci-dashboard .sim-impact { margin-top: 15px; font-size: 13px; padding-top: 10px; border-top: 1px solid #e0e0e0; }
-		.wpci-dashboard .roi-badge { padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; color: #fff; }
-		.wpci-dashboard .roi-badge.high { background: #46b450; }
-		.wpci-dashboard .roi-badge.medium { background: #2271b1; }
-		.wpci-dashboard .roi-badge.low { background: #dc3232; }
-		.wpci-dashboard .rec-item { display: flex; gap: 8px; margin-top: 8px; padding: 8px; background: #fff; border: 1px solid #d1e3f9; }
-		.wpci-dashboard .robots-snippet { background: #f0f0f1; padding: 8px; border-left: 3px solid #666; font-size: 11px; }
-		.wpci-dashboard .delay-badge { padding: 2px 6px; border-radius: 10px; font-size: 10px; color: #fff; }
-		.wpci-dashboard .delay-badge.green { background: #46b450; }
-		.wpci-dashboard .delay-badge.red { background: #dc3232; }
-		.wpci-dashboard .session-path { margin-top: 10px; padding: 10px; border: 1px solid #ddd; background: #f9f9f9; }
-		.wpci-dashboard .path-flow { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 8px; }
-		.wpci-dashboard .path-step { padding: 4px 8px; background: #fff; border: 1px solid #ccc; font-size: 10px; }
-		.wpci-dashboard .slow-row { background: #fff5f5 !important; }
-		.wpci-dashboard .description { font-style: italic; font-size: 11px; color: #777; margin-bottom: 8px; }
-	</style>
-
-	<div class="wpci-actions" style="margin-top: 30px;">
-		<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
-			<input type="hidden" name="action" value="wpci_export_csv">
-			<?php wp_nonce_field( 'wpci_export_csv', '_wpnonce' ); ?>
-			<button type="submit" class="button button-primary">Full CSV Export</button>
-		</form>
-	</div>
+    <div class="wpci-actions" style="display: flex; gap: 15px; margin-top: 20px;">
+        <form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
+            <input type="hidden" name="action" value="wpci_export_csv">
+            <?php wp_nonce_field( 'wpci_export_csv', '_wpnonce' ); ?>
+            <button type="submit" class="button button-primary button-large" style="background: var(--wpci-primary); border: none; padding: 10px 24px; height: auto;">Export Technical Logs</button>
+        </form>
+    </div>
 </div>
