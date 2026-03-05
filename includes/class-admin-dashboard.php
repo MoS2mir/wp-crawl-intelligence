@@ -30,44 +30,54 @@ class AdminDashboard {
 		
 		$analyzer = new CrawlAnalyzer();
 		
-		// Chart data preparation: last 14 days
-		$start_date = date( 'Y-m-d', strtotime( '-14 days' ) );
-		$end_date = date( 'Y-m-d' );
-		$stats = $analyzer->get_stats_for_range( $start_date, $end_date );
+		// Chart data preparation: last 14 days (Crawl vs Traffic)
+		$stats = $analyzer->get_crawl_vs_traffic();
 
 		$labels = [];
-		$hit_counts = [];
-		$response_times = [];
-		
-		foreach ( $stats as $stat ) {
-			if ( ! in_array( $stat->date, $labels ) ) {
-				$labels[] = $stat->date;
-				$hit_counts[ $stat->date ] = 0;
-				$response_times[ $stat->date ] = 0;
-				$count[ $stat->date ] = 0;
-			}
-			$hit_counts[ $stat->date ] += $stat->hit_count;
-			$response_times[ $stat->date ] += $stat->avg_response_time;
-			$count[ $stat->date ] += 1;
-		}
+		$botHits = [];
+		$humanHits = [];
 
-		$formatted_response_times = [];
-		foreach ( $response_times as $date => $time ) {
-			$formatted_response_times[] = ( $count[ $date ] > 0 ) ? ( $time / $count[ $date ] ) : 0;
+		foreach ( $stats as $row ) {
+			$labels[] = date( 'M j', strtotime( $row->date ) );
+			$botHits[] = (int) $row->bot_hits;
+			$humanHits[] = (int) $row->human_hits;
 		}
 
 		wp_localize_script( 'wpci_admin_js', 'wpciData', [
-			'labels'         => $labels,
-			'hitCounts'      => array_values( $hit_counts ),
-			'responseTimes'  => array_values( $formatted_response_times ),
+			'labels'     => $labels,
+			'botHits'    => $botHits,
+			'humanHits'  => $humanHits,
 		] );
 	}
 
 	public function render_dashboard() {
 		$analyzer = new CrawlAnalyzer();
+		$sitemap_analyzer = new SitemapAnalyzer();
+
+		// Core Stats
 		$score = $analyzer->get_crawl_budget_score();
 		$top_urls = $analyzer->get_top_urls( 7, 10 );
 		$alerts = $analyzer->get_alerts();
+
+		// Feature Data
+		$unloved_pages = $sitemap_analyzer->get_unloved_pages( 30 ); // Feature 1
+		$parameter_waste = $analyzer->get_parameter_waste(); // Feature 2
+		$redirect_chains = $analyzer->get_redirect_chains(); // Feature 3
+		$budget_by_type = $analyzer->get_budget_by_post_type(); // Feature 4
+		$soft_404s = $analyzer->get_soft_404_candidates(); // Feature 5
+		$latency_heatmap = $analyzer->get_latency_heatmap(); // Feature 6
+		$mobile_parity = $analyzer->get_mobile_parity_stats(); // Feature 8
+		$robots_suggestions = $analyzer->get_robots_txt_suggestions(); // Feature 9
+		$discovery_speed = $analyzer->get_discovery_speed(); // Feature 10
+
+		// New Advanced Features
+		$bot_sessions = $analyzer->get_bot_sessions(); // Feature 3: Crawl Path
+		$crawl_capacity = $analyzer->get_crawl_capacity_estimate(); // Feature 2: Capacity
+		$ai_recommendations = $analyzer->get_ai_recommendations(); // Feature 8: AI Advisor
+		$crawl_roi = $analyzer->get_crawl_roi_stats(); // Feature 7: ROI
+		$budget_simulator = $analyzer->get_crawl_budget_simulator(); // Feature 7: Simulator
+		$crawl_vs_traffic = $analyzer->get_crawl_vs_traffic(); // Feature 7: vs Traffic
+		$resource_ratio = $analyzer->get_resource_to_page_ratio(); // Feature 6: Rendering Monitor
 
 		include WPCI_PATH . 'includes/views/dashboard.php';
 	}

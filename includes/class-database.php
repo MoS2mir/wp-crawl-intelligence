@@ -21,12 +21,20 @@ class Database {
 			response_time decimal(10,5) DEFAULT NULL,
 			referer text DEFAULT NULL,
 			bot_type varchar(32) DEFAULT NULL,
+			post_type varchar(32) DEFAULT NULL,
+			content_length bigint(20) DEFAULT NULL,
+			is_parameterized tinyint(1) DEFAULT 0,
+			device_type varchar(16) DEFAULT NULL,
+			is_sitemap_url tinyint(1) DEFAULT 0,
 			is_verified_bot tinyint(1) DEFAULT 0,
 			timestamp datetime DEFAULT CURRENT_TIMESTAMP NOT NULL,
 			PRIMARY KEY  (id),
 			KEY ip (ip),
 			KEY bot_type (bot_type),
+			KEY post_type (post_type),
 			KEY status_code (status_code),
+			KEY is_parameterized (is_parameterized),
+			KEY device_type (device_type),
 			KEY timestamp (timestamp)
 		) $charset_collate;";
 

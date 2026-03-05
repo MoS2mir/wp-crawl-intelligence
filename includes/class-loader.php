@@ -13,20 +13,23 @@ class Loader {
 		// Initialize Database and Tables (though we handle this on activation)
 		new Database();
 
-		// Bot Detection & Verification
+		// Bot Detection, Verification & Security
 		new BotDetector();
 		new DnsVerifier();
+		new Security(); // Feature 11: Fake Bot Firewall
 
 		// Crawl Analysis & Stats
 		new CrawlAnalyzer();
+		new SitemapAnalyzer(); // Feature 1: Sitemap Analysis
 
 		// Admin & UI
 		if ( is_admin() ) {
 			new AdminDashboard();
 		}
 
-		// Background Tasks & Aggregation
+		// Background Tasks & Notifications
 		new Cron();
+		new AlertSystem(); // Feature 12: Admin Alerts
 	}
 
 	private function add_action( $hook, $callback, $priority = 10, $accepted_args = 1 ) {

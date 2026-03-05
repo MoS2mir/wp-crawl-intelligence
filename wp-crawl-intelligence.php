@@ -3,7 +3,7 @@
  * Plugin Name: WP Crawl Intelligence
  * Description: Advanced real-time bot tracking, crawl budget analysis, and SEO intelligence for WordPress.
  * Version: 1.0.0
- * Author: Antigravity Architect
+ * Author: mohamed samir
  * Text Domain: wp-crawl-intelligence
  * Requires PHP: 8.0
  * Requires at least: 5.8
@@ -47,9 +47,11 @@ spl_autoload_register( function ( $class ) {
 
 	$relative_class = substr( $class, $len );
 	
-	// Convert namespace to file path: WPCI\Includes\Logger -> includes/class-logger.php
+	// Convert namespace to file path: WPCI\Includes\BotDetector -> includes/class-bot-detector.php
 	$parts = explode( '\\', $relative_class );
-	$file = 'class-' . strtolower( str_replace( '_', '-', end( $parts ) ) ) . '.php';
+	$class_name = end( $parts );
+	$file_name = strtolower( preg_replace( '/(?<!^)[A-Z]/', '-$0', $class_name ) );
+	$file = 'class-' . str_replace( '_', '-', $file_name ) . '.php';
 	
 	// If it's in a sub-namespace, we'd need to handle subdirectories, 
 	// but based on requested structure, everything is in includes/
