@@ -24,7 +24,6 @@ class Logger {
 				return;
 			}
 		}
-
 		// Buffer output to get size and analyze content
 		ob_start();
 		
