@@ -10,9 +10,21 @@ class Logger {
 	public function __construct() {
 		$this->start_time = microtime( true );
 		
-		// Avoid logging admin/logged-in users/AJAX/Cron
-		if ( is_admin() || is_user_logged_in() || wp_doing_ajax() || wp_doing_cron() ) {
+		// Emergency Kill Switch
+		if ( get_option( 'wpci_kill_switch', false ) ) {
 			return;
+		}
+
+		// Avoid logging admin/AJAX/Cron
+		if ( is_admin() || wp_doing_ajax() || wp_doing_cron() ) {
+			return;
+		}
+
+		// WooCommerce Protection: Don't log Checkout/Cart/Account pages to ensure performance
+		if ( function_exists( 'is_woocommerce' ) ) {
+			if ( is_cart() || is_checkout() || is_account_page() ) {
+				return;
+			}
 		}
 
 		// Check for Ignored IPs
@@ -24,22 +36,33 @@ class Logger {
 				return;
 			}
 		}
+
+		// Optimization: Identify bot BEFORE buffering. 
+		// If it's a human and human logging is disabled, exit before ob_start()
+		$user_agent = isset( $_SERVER['HTTP_USER_AGENT'] ) ? $_SERVER['HTTP_USER_AGENT'] : '';
+		$bot_detector = new BotDetector();
+		$bot_type = $bot_detector->identify_bot( $user_agent );
+		
+		$enable_human_logs = get_option( 'wpci_enable_human_logs', true );
+		if ( ! $bot_type && ! $enable_human_logs ) {
+			return;
+		}
+
 		// Buffer output to get size and analyze content
 		ob_start();
 		
-		$this->collect_request_data();
+		$this->collect_request_data( $bot_type );
 		
 		add_action( 'shutdown', [ $this, 'finalize_log' ], 20 );
 	}
 
-	public function collect_request_data() {
+	public function collect_request_data( $pre_identified_bot = null ) {
 		$uri = $_SERVER['REQUEST_URI'];
 		$user_agent = isset( $_SERVER['HTTP_USER_AGENT'] ) ? $_SERVER['HTTP_USER_AGENT'] : '';
 		
-		$bot_detector = new BotDetector();
-		$bot_type = $bot_detector->identify_bot( $user_agent );
+		$bot_type = $pre_identified_bot;
 
-		// Ignore common static assets for HUMANS to save space, but log for BOTS for rendering analysis
+		// Ignore common static assets for HUMANS to save space
 		$is_asset = false;
 		$protected_extensions = [ '.css', '.js', '.png', '.jpg', '.jpeg', '.gif', '.svg', '.woff', '.woff2', '.ttf', '.json', '.ico' ];
 		foreach ( $protected_extensions as $ext ) {
@@ -50,10 +73,9 @@ class Logger {
 		}
 
 		if ( $is_asset && ! $bot_type ) {
-			return; // Don't log asset hits for humans
+			return; 
 		}
 
-		// If it's not a bot, we log it as 'Human' for Crawl vs Traffic analysis
 		if ( ! $bot_type ) {
 			$bot_type = 'Human';
 		}
@@ -138,11 +160,19 @@ class Logger {
 	}
 
 	private function get_ip() {
+		// Cloudflare support
+		if ( ! empty( $_SERVER['HTTP_CF_CONNECTING_IP'] ) ) {
+			return $_SERVER['HTTP_CF_CONNECTING_IP'];
+		}
+		
+		// Standard proxy headers
 		if ( ! empty( $_SERVER['HTTP_CLIENT_IP'] ) ) {
 			return $_SERVER['HTTP_CLIENT_IP'];
 		} elseif ( ! empty( $_SERVER['HTTP_X_FORWARDED_FOR'] ) ) {
-			return explode( ',', $_SERVER['HTTP_X_FORWARDED_FOR'] )[0];
+			$ips = explode( ',', $_SERVER['HTTP_X_FORWARDED_FOR'] );
+			return trim( $ips[0] );
 		}
+		
 		return $_SERVER['REMOTE_ADDR'];
 	}
 }

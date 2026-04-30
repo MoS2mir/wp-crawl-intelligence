@@ -42,6 +42,18 @@ class Settings {
 			'sanitize_callback' => 'sanitize_text_field',
 			'default'           => '',
 		] );
+
+		register_setting( 'wpci_settings_group', 'wpci_enable_human_logs', [
+			'type'              => 'boolean',
+			'sanitize_callback' => 'rest_sanitize_boolean',
+			'default'           => true,
+		] );
+
+		register_setting( 'wpci_settings_group', 'wpci_kill_switch', [
+			'type'              => 'boolean',
+			'sanitize_callback' => 'rest_sanitize_boolean',
+			'default'           => false,
+		] );
 	}
 
 	public function render_settings_page() {
@@ -51,14 +63,27 @@ class Settings {
 			<form method="post" action="options.php">
 				<?php
 				settings_fields( 'wpci_settings_group' );
-				do_settings_sections( 'wpci_settings_group' );
 				?>
 				<table class="form-table">
 					<tr valign="top">
 						<th scope="row">Data Retention (Days)</th>
 						<td>
 							<input type="number" name="wpci_retention_days" value="<?php echo esc_attr( get_option( 'wpci_retention_days', 30 ) ); ?>" />
-							<p class="description">How many days of logs to keep in the database. Older logs will be deleted daily.</p>
+							<p class="description">How many days of logs to keep. Older logs deleted daily.</p>
+						</td>
+					</tr>
+					<tr valign="top">
+						<th scope="row">Optimization: Track Human Traffic</th>
+						<td>
+							<input type="checkbox" name="wpci_enable_human_logs" value="1" <?php checked( 1, get_option( 'wpci_enable_human_logs', true ) ); ?> />
+							<p class="description">Disable to log <strong>only</strong> search engine bots. Saves significant server resources (CPU/RAM).</p>
+						</td>
+					</tr>
+					<tr valign="top">
+						<th scope="row">Emergency Kill Switch</th>
+						<td>
+							<input type="checkbox" name="wpci_kill_switch" value="1" <?php checked( 1, get_option( 'wpci_kill_switch', false ) ); ?> />
+							<p class="description" style="color: red;"><strong>Immediately stops all logging activity.</strong> Use this if your server is under extreme load.</p>
 						</td>
 					</tr>
 					<tr valign="top">
@@ -68,6 +93,7 @@ class Settings {
 							<p class="description">Send email notifications for critical crawl issues.</p>
 						</td>
 					</tr>
+
 					<tr valign="top">
 						<th scope="row">Alert Email Address</th>
 						<td>
