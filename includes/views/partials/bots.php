@@ -4,7 +4,7 @@ if ( ! defined( 'ABSPATH' ) ) exit;
 <div class="wpci-grid full-grid">
     <div class="wpci-card">
         <div class="wpci-card-header">
-            <h3><?php echo $icons['path']; ?> Googlebot Crawl Path Reconstruction</h3>
+            <h3><?php echo $icons['path']; ?> Googlebot Crawl Path Reconstruction <span class="wpci-help-tip" data-tip="The sequence of URLs crawled by a specific bot IP. Helps visualize how bots navigate your site.">?</span></h3>
             <span class="wpci-badge blue">Vision</span>
         </div>
         <div class="sessions-container">
@@ -15,8 +15,10 @@ if ( ! defined( 'ABSPATH' ) ) exit;
                         <div class="path-flow">
                             <?php foreach ( array_slice($session['path'], 0, 8) as $index => $hit ) : ?>
                                 <div class="path-step">
-                                    <span class="step-url"><?php echo esc_html( wp_parse_url( $hit->url, PHP_URL_PATH ) ); ?></span>
-                                    <span class="step-meta"><?php echo esc_html( date( 'H:i', strtotime( $hit->timestamp ) ) ); ?> &bull; <?php echo esc_html($hit->status_code); ?></span>
+                                    <a href="<?php echo esc_url($hit->url); ?>" target="_blank" class="step-url-link">
+                                        <span class="step-url"><?php echo esc_html( wp_parse_url( $hit->url, PHP_URL_PATH ) ); ?></span>
+                                    </a>
+                                    <span class="step-meta"><?php echo esc_html( date( 'H:i', strtotime( $hit->timestamp ) ) ); ?> &bull; Status: <?php echo esc_html($hit->status_code); ?></span>
                                 </div>
                                 <?php if ( $index < count( array_slice($session['path'], 0, 8) ) - 1 ) : ?><span class="step-arrow">&rarr;</span><?php endif; ?>
                             <?php endforeach; ?>
@@ -33,7 +35,7 @@ if ( ! defined( 'ABSPATH' ) ) exit;
 <div class="wpci-grid two-col">
     <div class="wpci-card">
         <div class="wpci-card-header">
-            <h3><span class="dashicons dashicons-smartphone"></span> Mobile-First Indexing Parity</h3>
+            <h3><span class="dashicons dashicons-smartphone"></span> Mobile-First Indexing Parity <span class="wpci-help-tip" data-tip="Comparison of how bots crawl your site on mobile vs desktop. Crucial for Google's mobile-first indexing.">?</span></h3>
         </div>
         <table class="wp-list-table widefat fixed striped">
             <thead><tr><th>Bot & Device</th><th>Hits</th><th>Avg Response</th></tr></thead>
@@ -51,7 +53,7 @@ if ( ! defined( 'ABSPATH' ) ) exit;
 
     <div class="wpci-card">
         <div class="wpci-card-header">
-            <h3><?php echo $icons['render']; ?> Rendering Monitor (Resource Ratio)</h3>
+            <h3><?php echo $icons['render']; ?> Rendering Monitor <span class="wpci-help-tip" data-tip="Bots must crawl JS and CSS files to render pages. A low asset-to-page ratio might mean bots aren't seeing your full design.">?</span></h3>
         </div>
         <p class="description">Ratio of JS/CSS requests vs Page requests per bot.</p>
         <table class="wp-list-table widefat fixed striped">

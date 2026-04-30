@@ -348,6 +348,99 @@
 	overflow-x: auto;
 }
 
+/* Tooltip Styling */
+.wpci-help-tip {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 16px;
+	height: 16px;
+	background: var(--wpci-border);
+	color: var(--wpci-text-muted);
+	border-radius: 50%;
+	font-size: 10px;
+	cursor: help;
+	margin-left: 4px;
+	position: relative;
+}
+
+.wpci-help-tip:hover::after {
+	content: attr(data-tip);
+	position: absolute;
+	bottom: 25px;
+	left: 50%;
+	transform: translateX(-50%);
+	background: #1e293b;
+	color: #fff;
+	padding: 8px 12px;
+	border-radius: 6px;
+	font-size: 11px;
+	width: 200px;
+	white-space: normal;
+	z-index: 100;
+	box-shadow: var(--wpci-shadow-md);
+	line-height: 1.4;
+}
+
+/* Action Buttons */
+.wpci-actions-cell {
+	display: flex;
+	gap: 8px;
+}
+
+.wpci-action-btn {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 28px;
+	height: 28px;
+	background: #f1f5f9;
+	color: var(--wpci-text-muted);
+	border-radius: 6px;
+	text-decoration: none;
+	transition: all 0.2s ease;
+}
+
+.wpci-action-btn:hover {
+	background: var(--wpci-primary-light);
+	color: var(--wpci-primary);
+}
+
+.wpci-action-btn.gsc-btn:hover {
+	background: #fef2f2;
+	color: #db4437; /* Google Red */
+}
+
+.wpci-action-btn .dashicons {
+	font-size: 16px;
+	width: 16px;
+	height: 16px;
+}
+
+/* URL Cell Styling */
+.wpci-url-cell code {
+	background: #f8fafc;
+	padding: 2px 6px;
+	border-radius: 4px;
+	color: var(--wpci-primary);
+	font-size: 12px;
+	max-width: 200px;
+	display: inline-block;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.step-url-link {
+	text-decoration: none;
+	color: inherit;
+}
+
+.step-url-link:hover .step-url {
+	color: var(--wpci-primary);
+	text-decoration: underline;
+}
+
 /* Animations */
 @keyframes fadeIn {
 	from {

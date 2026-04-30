@@ -5,7 +5,7 @@ if ( ! defined( 'ABSPATH' ) ) exit;
 <div class="wpci-grid three-col">
     <div class="wpci-card">
         <div class="wpci-card-header">
-            <h3><?php echo $icons['budget']; ?> Crawl Budget Score</h3>
+            <h3><?php echo $icons['budget']; ?> Crawl Budget Score <span class="wpci-help-tip" data-tip="A score from 0-100 reflecting your site's crawl health. High errors and slow responses lower this score.">?</span></h3>
             <span class="wpci-badge <?php echo ($score > 80) ? 'green' : 'yellow'; ?>">Last 7 Days</span>
         </div>
         <div class="score-display">
@@ -19,7 +19,7 @@ if ( ! defined( 'ABSPATH' ) ) exit;
 
     <div class="wpci-card">
         <div class="wpci-card-header">
-            <h3><?php echo $icons['capacity']; ?> Crawl Capacity</h3>
+            <h3><?php echo $icons['capacity']; ?> Crawl Capacity <span class="wpci-help-tip" data-tip="Estimated number of URLs bots can safely crawl daily without overloading your server.">?</span></h3>
             <span class="wpci-badge green">Healthy</span>
         </div>
         <div class="score-display">
@@ -31,7 +31,7 @@ if ( ! defined( 'ABSPATH' ) ) exit;
 
     <div class="wpci-card advisor-card">
         <div class="wpci-card-header">
-            <h3><?php echo $icons['ai']; ?> AI Technical SEO Advisor</h3>
+            <h3><?php echo $icons['ai']; ?> AI SEO Advisor <span class="wpci-help-tip" data-tip="Intelligent recommendations to improve your technical SEO based on real bot logs.">?</span></h3>
             <span class="wpci-badge blue">Intelligence</span>
         </div>
         <div class="recommendations-list">
@@ -55,7 +55,7 @@ if ( ! defined( 'ABSPATH' ) ) exit;
 <div class="wpci-grid full-grid">
     <div class="wpci-card chart-card">
         <div class="wpci-card-header">
-            <h3><span class="dashicons dashicons-chart-line"></span> Crawl vs Traffic Intelligence (Last 14 Days)</h3>
+            <h3><span class="dashicons dashicons-chart-line"></span> Crawl vs Traffic Intelligence (Last 14 Days) <span class="wpci-help-tip" data-tip="Comparison between human visits and search engine bot crawls.">?</span></h3>
             <div class="wpci-chart-legend">
                 <div class="legend-item"><span class="dot blue"></span> Bots</div>
                 <div class="legend-item"><span class="dot green"></span> Human</div>
@@ -69,7 +69,7 @@ if ( ! defined( 'ABSPATH' ) ) exit;
     <!-- Budget Simulator -->
     <div class="wpci-card simulator-card">
         <div class="wpci-card-header">
-            <h3><span class="dashicons dashicons-calc"></span> Crawl Budget Simulator</h3>
+            <h3><span class="dashicons dashicons-calc"></span> Crawl Budget Simulator <span class="wpci-help-tip" data-tip="Forecast how much crawl budget you could save by blocking wasteful patterns.">?</span></h3>
             <span class="wpci-badge green">ROI Potential</span>
         </div>
         <p class="description">Forecast savings by optimizing common waste patterns.</p>
@@ -84,7 +84,7 @@ if ( ! defined( 'ABSPATH' ) ) exit;
 
     <div class="wpci-card">
         <div class="wpci-card-header">
-            <h3><span class="dashicons dashicons-money-alt"></span> Crawl ROI Stats</h3>
+            <h3><span class="dashicons dashicons-money-alt"></span> Crawl ROI Stats <span class="wpci-help-tip" data-tip="Which post types generate the most crawl interest relative to their SEO value.">?</span></h3>
         </div>
         <table class="wp-list-table widefat fixed striped">
             <thead><tr><th>Type</th><th>Value</th></tr></thead>
