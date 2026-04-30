@@ -10,10 +10,12 @@ class Database {
 		global $wpdb;
 		$charset_collate = $wpdb->get_charset_collate();
 		$table_name = $wpdb->prefix . 'wpci_logs';
+		$buffer_table = $wpdb->prefix . 'wpci_buffer';
 
 		$sql = "CREATE TABLE $table_name (
 			id bigint(20) NOT NULL AUTO_INCREMENT,
 			url text NOT NULL,
+			url_hash char(32) NOT NULL,
 			ip varchar(45) NOT NULL,
 			user_agent text NOT NULL,
 			method varchar(10) NOT NULL,
@@ -29,13 +31,17 @@ class Database {
 			is_verified_bot tinyint(1) DEFAULT 0,
 			timestamp datetime DEFAULT CURRENT_TIMESTAMP NOT NULL,
 			PRIMARY KEY  (id),
+			KEY url_hash (url_hash),
 			KEY ip (ip),
 			KEY bot_type (bot_type),
-			KEY post_type (post_type),
-			KEY status_code (status_code),
-			KEY is_parameterized (is_parameterized),
-			KEY device_type (device_type),
 			KEY timestamp (timestamp)
+		) $charset_collate;";
+
+		$sql_buffer = "CREATE TABLE $buffer_table (
+			id bigint(20) NOT NULL AUTO_INCREMENT,
+			data longtext NOT NULL,
+			timestamp datetime DEFAULT CURRENT_TIMESTAMP NOT NULL,
+			PRIMARY KEY  (id)
 		) $charset_collate;";
 
 		// Table for raw stats aggregation
@@ -56,12 +62,18 @@ class Database {
 
 		require_once ABSPATH . 'wp-admin/includes/upgrade.php';
 		dbDelta( $sql );
+		dbDelta( $sql_buffer );
 		dbDelta( $sql_stats );
 	}
 
 	public static function get_table_name() {
 		global $wpdb;
 		return $wpdb->prefix . 'wpci_logs';
+	}
+
+	public static function get_buffer_table_name() {
+		global $wpdb;
+		return $wpdb->prefix . 'wpci_buffer';
 	}
 
 	public static function get_stats_table_name() {

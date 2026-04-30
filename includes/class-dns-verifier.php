@@ -9,18 +9,9 @@ class DnsVerifier {
 			return (bool) $cached;
 		}
 
-		$hostname = gethostbyaddr( $ip );
-		if ( ! $hostname || ! preg_match( '/\.google(bot)?\.com$/i', $hostname ) ) {
-			set_transient( $cache_key, 0, DAY_IN_SECONDS );
-			return false;
-		}
-
-		// Verify IP matches hostname
-		$resolved_ip = gethostbyname( $hostname );
-		$is_verified = ( $resolved_ip === $ip ) ? 1 : 0;
-		set_transient( $cache_key, $is_verified, DAY_IN_SECONDS );
-
-		return (bool) $is_verified;
+		// 1. Remove synchronous DNS lookups (gethostbyaddr/gethostbyname removed)
+		// Instead, we return false and let the background process handle it
+		return false;
 	}
 
 	public function verify_bing( $ip ) {
@@ -30,17 +21,7 @@ class DnsVerifier {
 			return (bool) $cached;
 		}
 
-		$hostname = gethostbyaddr( $ip );
-		if ( ! $hostname || ! preg_match( '/\.search\.msn\.com$/i', $hostname ) ) {
-			set_transient( $cache_key, 0, DAY_IN_SECONDS );
-			return false;
-		}
-
-		$resolved_ip = gethostbyname( $hostname );
-		$is_verified = ( $resolved_ip === $ip ) ? 1 : 0;
-		set_transient( $cache_key, $is_verified, DAY_IN_SECONDS );
-
-		return (bool) $is_verified;
+		return false;
 	}
 
 	public function verify_bot( $bot_type, $ip ) {
@@ -49,8 +30,30 @@ class DnsVerifier {
 		} elseif ( 'Bingbot' === $bot_type ) {
 			return $this->verify_bing( $ip );
 		}
-		// Default true for non-verifiable bots, as they are likely identified by UA
-		// but we might add more later.
 		return true;
+	}
+
+	/**
+	 * Background verification method to be called by Cron
+	 */
+	public function perform_background_verification( $ip, $bot_type ) {
+		if ( 'Googlebot' === $bot_type ) {
+			$hostname = gethostbyaddr( $ip );
+			if ( $hostname && preg_match( '/\.google(bot)?\.com$/i', $hostname ) ) {
+				$resolved_ip = gethostbyname( $hostname );
+				$is_verified = ( $resolved_ip === $ip ) ? 1 : 0;
+				set_transient( 'wpci_verify_google_' . $ip, $is_verified, DAY_IN_SECONDS );
+				return (bool) $is_verified;
+			}
+		} elseif ( 'Bingbot' === $bot_type ) {
+			$hostname = gethostbyaddr( $ip );
+			if ( $hostname && preg_match( '/\.search\.msn\.com$/i', $hostname ) ) {
+				$resolved_ip = gethostbyname( $hostname );
+				$is_verified = ( $resolved_ip === $ip ) ? 1 : 0;
+				set_transient( 'wpci_verify_bing_' . $ip, $is_verified, DAY_IN_SECONDS );
+				return (bool) $is_verified;
+			}
+		}
+		return false;
 	}
 }

@@ -22,16 +22,13 @@ class Security {
 			return;
 		}
 
-		$dns_verifier = new DnsVerifier();
+		$cache_key = ( 'Googlebot' === $bot_type ) ? 'wpci_verify_google_' : 'wpci_verify_bing_';
 		$ip = $this->get_ip();
+		$verification_status = get_transient( $cache_key . $ip );
 
-		if ( ! $dns_verifier->verify_bot( $bot_type, $ip ) ) {
-			// If it's a fake bot, we can block it
-			// For now, let's just log it as a security event? 
-			// Requirement says "block them at the application level".
-			
-			// Option: Check if blocking is enabled in settings
-			// Since we don't have settings yet, let's keep it cautious or add a simple check
+		// Only block if explicitly identified as fake (status 0 in cache)
+		// If status is false (not in cache), we don't block yet to avoid false positives
+		if ( 0 === $verification_status && false !== $verification_status ) {
 			if ( apply_filters( 'wpci_enable_firewall', false ) ) {
 				status_header( 403 );
 				exit( 'Access Denied: Fake Search Bot Detected' );
@@ -40,11 +37,16 @@ class Security {
 	}
 
 	private function get_ip() {
-		if ( ! empty( $_SERVER['HTTP_CLIENT_IP'] ) ) {
-			return $_SERVER['HTTP_CLIENT_IP'];
-		} elseif ( ! empty( $_SERVER['HTTP_X_FORWARDED_FOR'] ) ) {
-			return explode( ',', $_SERVER['HTTP_X_FORWARDED_FOR'] )[0];
+		$ip_headers = [ 'HTTP_CF_CONNECTING_IP', 'HTTP_X_FORWARDED_FOR', 'HTTP_CLIENT_IP', 'HTTP_X_REAL_IP', 'REMOTE_ADDR' ];
+		foreach ( $ip_headers as $header ) {
+			if ( ! empty( $_SERVER[ $header ] ) ) {
+				$ip = $_SERVER[ $header ];
+				if ( $header === 'HTTP_X_FORWARDED_FOR' ) {
+					$ip = explode( ',', $ip )[0];
+				}
+				return trim( $ip );
+			}
 		}
-		return $_SERVER['REMOTE_ADDR'];
+		return '0.0.0.0';
 	}
 }

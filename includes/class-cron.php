@@ -6,6 +6,7 @@ class Cron {
 		add_action( 'wpci_daily_aggregation', [ $this, 'aggregate_logs' ] );
 		add_action( 'wpci_daily_cleanup', [ $this, 'cleanup_logs' ] );
 		add_action( 'wpci_daily_check', [ ( new AlertSystem() ), 'run_checks' ] );
+		add_action( 'wpci_process_buffer', [ $this, 'process_log_buffer' ] );
 	}
 
 	public static function schedule_events() {
@@ -18,12 +19,53 @@ class Cron {
 		if ( ! wp_next_scheduled( 'wpci_daily_check' ) ) {
 			wp_schedule_event( time(), 'daily', 'wpci_daily_check' );
 		}
+		if ( ! wp_next_scheduled( 'wpci_process_buffer' ) ) {
+			wp_schedule_event( time(), 'hourly', 'wpci_process_buffer' );
+		}
 	}
 
 	public static function clear_scheduled_events() {
 		wp_clear_scheduled_hook( 'wpci_daily_aggregation' );
 		wp_clear_scheduled_hook( 'wpci_daily_cleanup' );
 		wp_clear_scheduled_hook( 'wpci_daily_check' );
+		wp_clear_scheduled_hook( 'wpci_process_buffer' );
+	}
+
+	/**
+	 * Process the buffer table and move logs to the main table in batches
+	 */
+	public function process_log_buffer() {
+		global $wpdb;
+		$buffer_table = Database::get_buffer_table_name();
+		$logs_table = Database::get_table_name();
+		$dns_verifier = new DnsVerifier();
+
+		$entries = $wpdb->get_results( "SELECT * FROM $buffer_table ORDER BY id ASC LIMIT 500" );
+
+		if ( ! $entries ) {
+			return;
+		}
+
+		$ids_to_delete = [];
+		foreach ( $entries as $entry ) {
+			$data = json_decode( $entry->data, true );
+			if ( ! $data ) {
+				$ids_to_delete[] = $entry->id;
+				continue;
+			}
+
+			// Perform deferred DNS verification if needed
+			if ( in_array( $data['bot_type'], [ 'Googlebot', 'Bingbot' ] ) ) {
+				$data['is_verified_bot'] = $dns_verifier->perform_background_verification( $data['ip'], $data['bot_type'] ) ? 1 : 0;
+			}
+
+			$wpdb->insert( $logs_table, $data );
+			$ids_to_delete[] = $entry->id;
+		}
+
+		if ( ! empty( $ids_to_delete ) ) {
+			$wpdb->query( "DELETE FROM $buffer_table WHERE id IN (" . implode( ',', array_map( 'intval', $ids_to_delete ) ) . ")" );
+		}
 	}
 
 	public function aggregate_logs() {
@@ -31,7 +73,6 @@ class Cron {
 		$logs_table = Database::get_table_name();
 		$stats_table = Database::get_stats_table_name();
 
-		// Aggregate for yesterday, just in case today is still being populated
 		$yesterday = date( 'Y-m-d', strtotime( '-1 day' ) );
 
 		$results = $wpdb->get_results( $wpdb->prepare(
@@ -73,7 +114,6 @@ class Cron {
 		global $wpdb;
 		$logs_table = Database::get_table_name();
 
-		// Get retention from settings, fallback to 30 days
 		$retention_days = get_option( 'wpci_retention_days', 30 );
 		$date = date( 'Y-m-d', strtotime( "-$retention_days days" ) );
 

@@ -10,21 +10,19 @@ class Logger {
 	public function __construct() {
 		$this->start_time = microtime( true );
 		
-		// Emergency Kill Switch
+		// 4. Kill Switch
 		if ( get_option( 'wpci_kill_switch', false ) ) {
 			return;
 		}
 
-		// Avoid logging admin/AJAX/Cron
+		// 9. Logger Early Exits
 		if ( is_admin() || wp_doing_ajax() || wp_doing_cron() ) {
 			return;
 		}
 
-		// WooCommerce Protection: Don't log Checkout/Cart/Account pages to ensure performance
-		if ( function_exists( 'is_woocommerce' ) ) {
-			if ( is_cart() || is_checkout() || is_account_page() ) {
-				return;
-			}
+		// 3. WooCommerce Exclusions (Improved)
+		if ( $this->is_woocommerce_protected() ) {
+			return;
 		}
 
 		// Check for Ignored IPs
@@ -37,8 +35,7 @@ class Logger {
 			}
 		}
 
-		// Optimization: Identify bot BEFORE buffering. 
-		// If it's a human and human logging is disabled, exit before ob_start()
+		// Optimization: Identify bot early
 		$user_agent = isset( $_SERVER['HTTP_USER_AGENT'] ) ? $_SERVER['HTTP_USER_AGENT'] : '';
 		$bot_detector = new BotDetector();
 		$bot_type = $bot_detector->identify_bot( $user_agent );
@@ -48,12 +45,33 @@ class Logger {
 			return;
 		}
 
-		// Buffer output to get size and analyze content
-		ob_start();
-		
+		// 2. Stop using ob_start() for default requests
+		// 10. No blocking operations in request thread
 		$this->collect_request_data( $bot_type );
 		
 		add_action( 'shutdown', [ $this, 'finalize_log' ], 20 );
+	}
+
+	private function is_woocommerce_protected() {
+		if ( ! function_exists( 'is_woocommerce' ) ) {
+			return false;
+		}
+		
+		// If WooCommerce is loaded, check for sensitive pages
+		if ( is_cart() || is_checkout() || is_account_page() ) {
+			return true;
+		}
+
+		// Additional check for URL patterns if helper functions aren't ready
+		$uri = $_SERVER['REQUEST_URI'];
+		$protected_paths = [ '/cart/', '/checkout/', '/my-account/' ];
+		foreach ( $protected_paths as $path ) {
+			if ( str_contains( $uri, $path ) ) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	public function collect_request_data( $pre_identified_bot = null ) {
@@ -62,11 +80,11 @@ class Logger {
 		
 		$bot_type = $pre_identified_bot;
 
-		// Ignore common static assets for HUMANS to save space
+		// Ignore common static assets for HUMANS
 		$is_asset = false;
 		$protected_extensions = [ '.css', '.js', '.png', '.jpg', '.jpeg', '.gif', '.svg', '.woff', '.woff2', '.ttf', '.json', '.ico' ];
 		foreach ( $protected_extensions as $ext ) {
-			if ( strpos( strtolower( $uri ), $ext ) !== false ) {
+			if ( str_contains( strtolower( $uri ), $ext ) ) {
 				$is_asset = true;
 				break;
 			}
@@ -95,84 +113,79 @@ class Logger {
 
 	public function finalize_log() {
 		if ( ! $this->request_data ) {
-			if ( ob_get_level() > 0 ) {
-				ob_end_flush();
-			}
 			return;
 		}
 
-		$this->content_size = ob_get_length();
-		if ( ob_get_level() > 0 ) {
-			ob_end_flush();
-		}
-
 		global $wpdb;
-		$table_name = Database::get_table_name();
+		$buffer_table = Database::get_buffer_table_name();
 
 		$response_time = microtime( true ) - $this->start_time;
 		$status_code = http_response_code();
 
-		// Determine Post Type
+		// Determine Post Type efficiently
 		$post_type = 'unknown';
-		if ( is_singular() ) {
+		if ( function_exists( 'get_post_type' ) && is_singular() ) {
 			$post_type = get_post_type();
-		} elseif ( is_archive() ) {
-			$post_type = 'archive';
-		} elseif ( is_home() || is_front_page() ) {
-			$post_type = 'homepage';
-		} elseif ( is_search() ) {
-			$post_type = 'search';
 		}
 
-		// Bot Verification
-		$dns_verifier = new DnsVerifier();
-		$is_verified = $dns_verifier->verify_bot( $this->request_data['bot_type'], $this->request_data['ip'] ) ? 1 : 0;
+		// 6. Queue-based system (Write to buffer table first)
+		// 8. No heavy operations (DNS verification is now deferred)
+		$log_data = [
+			'url'               => $this->request_data['url'],
+			'url_hash'          => md5( $this->request_data['url'] ), // 7. Hash-based lookup
+			'ip'                => $this->request_data['ip'],
+			'user_agent'        => $this->request_data['user_agent'],
+			'method'            => $this->request_data['method'],
+			'status_code'       => $status_code,
+			'response_time'     => $response_time,
+			'referer'           => $this->request_data['referer'],
+			'bot_type'          => $this->request_data['bot_type'],
+			'post_type'         => $post_type,
+			'content_length'    => 0, // Removed ob_start dependency
+			'is_parameterized'  => $this->request_data['is_parameterized'],
+			'device_type'       => $this->request_data['device_type'],
+			'is_verified_bot'   => 0, // Verification deferred
+			'timestamp'         => current_time( 'mysql' ),
+		];
 
 		$wpdb->insert(
-			$table_name,
-			[
-				'url'               => $this->request_data['url'],
-				'ip'                => $this->request_data['ip'],
-				'user_agent'        => $this->request_data['user_agent'],
-				'method'            => $this->request_data['method'],
-				'status_code'       => $status_code,
-				'response_time'     => $response_time,
-				'referer'           => $this->request_data['referer'],
-				'bot_type'          => $this->request_data['bot_type'],
-				'post_type'         => $post_type,
-				'content_length'    => $this->content_size,
-				'is_parameterized'  => $this->request_data['is_parameterized'],
-				'device_type'       => $this->request_data['device_type'],
-				'is_sitemap_url'    => 0, // Will be updated by Sitemap Module later
-				'is_verified_bot'   => $is_verified,
-				'timestamp'         => current_time( 'mysql' ),
-			],
-			[ '%s', '%s', '%s', '%s', '%d', '%f', '%s', '%s', '%s', '%d', '%d', '%s', '%d', '%d', '%s' ]
+			$buffer_table,
+			[ 'data' => json_encode( $log_data ) ],
+			[ '%s' ]
 		);
 	}
 
 	private function detect_device_type( $user_agent ) {
 		$user_agent = strtolower( $user_agent );
-		if ( strpos( $user_agent, 'mobile' ) !== false || strpos( $user_agent, 'smartphone' ) !== false || strpos( $user_agent, 'android' ) !== false || strpos( $user_agent, 'iphone' ) !== false ) {
+		if ( str_contains( $user_agent, 'mobile' ) || str_contains( $user_agent, 'smartphone' ) || str_contains( $user_agent, 'android' ) || str_contains( $user_agent, 'iphone' ) ) {
 			return 'Mobile';
 		}
 		return 'Desktop';
 	}
 
 	private function get_ip() {
-		// Cloudflare support
-		if ( ! empty( $_SERVER['HTTP_CF_CONNECTING_IP'] ) ) {
-			return $_SERVER['HTTP_CF_CONNECTING_IP'];
+		// 5. Improved IP detection (Cloudflare + Proxies)
+		$ip_headers = [
+			'HTTP_CF_CONNECTING_IP',
+			'HTTP_X_FORWARDED_FOR',
+			'HTTP_CLIENT_IP',
+			'HTTP_X_REAL_IP',
+			'REMOTE_ADDR'
+		];
+
+		foreach ( $ip_headers as $header ) {
+			if ( ! empty( $_SERVER[ $header ] ) ) {
+				$ip = $_SERVER[ $header ];
+				if ( $header === 'HTTP_X_FORWARDED_FOR' ) {
+					$ips = explode( ',', $ip );
+					$ip = trim( $ips[0] );
+				}
+				if ( filter_var( $ip, FILTER_VALIDATE_IP ) ) {
+					return $ip;
+				}
+			}
 		}
 		
-		// Standard proxy headers
-		if ( ! empty( $_SERVER['HTTP_CLIENT_IP'] ) ) {
-			return $_SERVER['HTTP_CLIENT_IP'];
-		} elseif ( ! empty( $_SERVER['HTTP_X_FORWARDED_FOR'] ) ) {
-			$ips = explode( ',', $_SERVER['HTTP_X_FORWARDED_FOR'] );
-			return trim( $ips[0] );
-		}
-		
-		return $_SERVER['REMOTE_ADDR'];
+		return '0.0.0.0';
 	}
 }
