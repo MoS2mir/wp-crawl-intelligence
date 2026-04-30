@@ -1,8 +1,11 @@
 <?php
 /**
- * WP Crawl Intelligence - Modern SaaS Admin Dashboard
+ * WP Crawl Intelligence - Modern SaaS Admin Dashboard (Controller)
  */
 if ( ! defined( 'ABSPATH' ) ) exit;
+
+// Get current tab
+$current_tab = isset( $_GET['tab'] ) ? sanitize_text_field( $_GET['tab'] ) : 'overview';
 
 // SVG Icons for SaaS look
 $icons = [
@@ -17,13 +20,8 @@ $icons = [
 ?>
 
 <div class="wrap wpci-dashboard">
-    <div class="wpci-header">
-        <h1>
-            <span class="dashicons dashicons-shield-alt" style="font-size: 32px; width: 32px; height: 32px; color: var(--wpci-primary);"></span>
-            WP Crawl Intelligence <span class="wpci-badge blue">Premium</span>
-        </h1>
-        <p class="description">Modern Technical SEO Intelligence & Crawl Command Center.</p>
-    </div>
+    
+    <?php include WPCI_PATH . 'includes/views/partials/header.php'; ?>
 
     <?php if ( ! empty( $alerts ) ) : ?>
         <div class="wpci-grid full-grid">
@@ -43,241 +41,24 @@ $icons = [
         </div>
     <?php endif; ?>
 
-    <!-- Top KPI Row -->
-    <div class="wpci-grid three-col">
-        <div class="wpci-card">
-            <div class="wpci-card-header">
-                <h3><?php echo $icons['budget']; ?> Crawl Budget Score</h3>
-                <span class="wpci-badge <?php echo ($score > 80) ? 'green' : 'yellow'; ?>">Last 7 Days</span>
-            </div>
-            <div class="score-display">
-                <span class="score-value <?php echo ($score > 80) ? 'green' : (($score > 50) ? 'yellow' : 'red'); ?>">
-                    <?php echo esc_html( $score ); ?>
-                </span>
-                <p>/100</p>
-            </div>
-            <p class="description">Overall efficiency ranking based on bot success rates & performance.</p>
-        </div>
-
-        <div class="wpci-card">
-            <div class="wpci-card-header">
-                <h3><?php echo $icons['capacity']; ?> Crawl Capacity</h3>
-                <span class="wpci-badge green">Healthy</span>
-            </div>
-            <div class="score-display">
-                <span class="score-value green"><?php echo esc_html( number_format( $crawl_capacity ) ); ?></span>
-                <p>URLs / Day</p>
-            </div>
-            <p class="description">Calculated healthy crawl ceiling based on current server TTFB.</p>
-        </div>
-
-        <div class="wpci-card advisor-card">
-            <div class="wpci-card-header">
-                <h3><?php echo $icons['ai']; ?> AI Technical SEO Advisor</h3>
-                <span class="wpci-badge blue">Intelligence</span>
-            </div>
-            <div class="recommendations-list">
-                <?php if ( ! empty( $ai_recommendations ) ) : ?>
-                    <?php foreach ( array_slice($ai_recommendations, 0, 2) as $rec ) : ?>
-                        <div class="rec-item">
-                            <span class="dashicons dashicons-lightbulb problem-icon"></span>
-                            <div style="font-size: 11px;">
-                                <strong>Rec:</strong> <span class="solution-text"><?php echo esc_html( $rec['solution'] ); ?></span>
-                            </div>
-                        </div>
-                    <?php endforeach; ?>
-                <?php else : ?>
-                    <p style="font-size: 13px; margin: 10px 0;"><span class="dashicons dashicons-yes-alt green-icon"></span> No critical crawl optimizations needed!</p>
-                <?php endif; ?>
-            </div>
-        </div>
-    </div>
-
-    <!-- Main Chart Section -->
-    <div class="wpci-grid full-grid">
-        <div class="wpci-card chart-card">
-            <div class="wpci-card-header">
-                <h3><span class="dashicons dashicons-chart-line"></span> Crawl vs Traffic Intelligence (Last 14 Days)</h3>
-                <div class="wpci-chart-legend">
-                    <div class="legend-item"><span class="dot blue"></span> Bots</div>
-                    <div class="legend-item"><span class="dot green"></span> Human</div>
-                </div>
-            </div>
-            <div id="wpciBotChart" style="width: 100%; height: 260px;"></div>
-        </div>
-    </div>
-
-    <!-- Secondary Insights Grid -->
-    <div class="wpci-grid two-col">
-        <!-- Sitemap Gap card -->
-        <div class="wpci-card">
-            <div class="wpci-card-header">
-                <h3><?php echo $icons['sitemap']; ?> 1. Sitemap-Log Gap Analyzer</h3>
-                <span class="wpci-badge yellow">Discovery Fix</span>
-            </div>
-            <p class="description">Pages in your sitemap that bots have ignored for 30+ days.</p>
-            <div class="wpci-table-wrapper">
-                <table class="wp-list-table widefat fixed striped">
-                    <thead><tr><th>URL Pathway</th><th>Recency</th></tr></thead>
-                    <tbody>
-                        <?php if ( ! empty( $unloved_pages ) ) : ?>
-                            <?php foreach ( array_slice( $unloved_pages, 0, 4 ) as $url ) : ?>
-                                <li><span class="dashicons dashicons-warning" style="color: var(--wpci-warning);"></span> <?php echo esc_url( $url ); ?></li>
-                                <tr><td><?php echo esc_html( wp_parse_url($url, PHP_URL_PATH) ); ?></td><td><span class="wpci-badge red">30d+ Unseen</span></td></tr>
-                            <?php endforeach; ?>
-                        <?php else : ?>
-                            <tr><td colspan="2">Healthy! All sitemap URLs recently crawled.</td></tr>
-                        <?php endif; ?>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
-        <!-- Budget Simulator -->
-        <div class="wpci-card simulator-card">
-            <div class="wpci-card-header">
-                <h3><span class="dashicons dashicons-calc"></span> 7. Crawl Budget Simulator</h3>
-                <span class="wpci-badge green">ROI Potential</span>
-            </div>
-            <p class="description">Forecast savings by optimizing common waste patterns.</p>
-            <div class="score-display">
-                <span class="sim-value" style="font-size: 36px; color: var(--wpci-primary); font-weight: 800;"><?php echo esc_html( $budget_simulator['saved_percentage'] ); ?>%</span>
-                <p>Recovery</p>
-            </div>
-            <div class="robots-snippet" style="background: var(--wpci-primary-light); color: var(--wpci-primary); border: 1px dashed var(--wpci-primary);">
-                Blocking <strong>/tag/*</strong> and <strong>/search/*</strong> would recover <strong><?php echo esc_html( $budget_simulator['saved_units'] ); ?></strong> crawl units.
-            </div>
-        </div>
-    </div>
-
-    <!-- Mid Grid Modules -->
-    <div class="wpci-grid three-col">
-        <div class="wpci-card">
-            <div class="wpci-card-header">
-                <h3><?php echo $icons['waste']; ?> 2. Parameter Waste</h3>
-            </div>
-            <table class="wp-list-table widefat fixed striped">
-                <thead><tr><th>Pattern</th><th>Hits</th></tr></thead>
-                <tbody>
-                    <?php if ( ! empty( $parameter_waste ) ) : ?>
-                        <?php foreach ( array_slice( $parameter_waste, 0, 4 ) as $row ) : ?>
-                            <tr><td><code><?php echo esc_html( substr(wp_parse_url($row->url, PHP_URL_QUERY), 0, 15) ); ?>...</code></td><td><?php echo esc_html($row->waste_hits); ?></td></tr>
-                        <?php endforeach; ?>
-                    <?php else : ?>
-                        <tr><td colspan="2">No waste detected.</td></tr>
-                    <?php endif; ?>
-                </tbody>
-            </table>
-        </div>
-
-        <div class="wpci-card">
-            <div class="wpci-card-header">
-                <h3><span class="dashicons dashicons-redo"></span> 3. Redirect Monitor</h3>
-            </div>
-            <table class="wp-list-table widefat fixed striped">
-                <thead><tr><th>Redirect Chain</th><th>Hops</th></tr></thead>
-                <tbody>
-                    <?php if ( ! empty( $redirect_chains ) ) : ?>
-                        <?php foreach ( array_slice( $redirect_chains, 0, 4 ) as $row ) : ?>
-                            <tr><td><?php echo esc_html( wp_parse_url($row->url, PHP_URL_PATH) ); ?></td><td><span class="wpci-badge yellow"><?php echo esc_html($row->redirect_count); ?> hops</span></td></tr>
-                        <?php endforeach; ?>
-                    <?php else : ?>
-                        <tr><td colspan="2">Direct paths only.</td></tr>
-                    <?php endif; ?>
-                </tbody>
-            </table>
-        </div>
-
-        <div class="wpci-card">
-            <div class="wpci-card-header">
-                <h3><?php echo $icons['path']; ?> 10. Discovery Speed</h3>
-            </div>
-            <table class="wp-list-table widefat fixed striped">
-                <thead><tr><th>Content</th><th>IDelay</th></tr></thead>
-                <tbody>
-                    <?php if ( ! empty( $discovery_speed ) ) : ?>
-                        <?php foreach ( array_slice($discovery_speed, 0, 4) as $row ) : ?>
-                            <tr><td><?php echo esc_html(substr($row->post_title, 0, 18)); ?>...</td><td><span class="wpci-badge <?php echo ($row->discovery_delay_hours > 24) ? 'red' : 'green'; ?>"><?php echo esc_html($row->discovery_delay_hours); ?>h</span></td></tr>
-                        <?php endforeach; ?>
-                    <?php else : ?>
-                        <tr><td colspan="2">N/A</td></tr>
-                    <?php endif; ?>
-                </tbody>
-            </table>
-        </div>
-    </div>
-
-    <!-- Analytics Cards -->
-    <div class="wpci-grid">
-        <div class="wpci-card">
-            <div class="wpci-card-header">
-                <h3><span class="dashicons dashicons-performance"></span> 6. Latency Heatmap</h3>
-            </div>
-            <table class="wp-list-table widefat fixed striped">
-                <thead><tr><th>Cluster</th><th>latency</th></tr></thead>
-                <tbody>
-                    <?php foreach ( array_slice($latency_heatmap, 0, 4) as $row ) : ?>
-                        <tr><td><?php echo esc_html($row->url_cluster); ?></td><td><span class="wpci-badge <?php echo ($row->avg_ttfb > 0.8) ? 'red' : 'green'; ?>"><?php echo number_format($row->avg_ttfb, 2); ?>s</span></td></tr>
-                    <?php endforeach; ?>
-                </tbody>
-            </table>
-        </div>
-
-        <div class="wpci-card">
-            <div class="wpci-card-header">
-                <h3><span class="dashicons dashicons-smartphone"></span> 8. Mobile Parity</h3>
-            </div>
-            <table class="wp-list-table widefat fixed striped">
-                <thead><tr><th>Agent</th><th>Hits</th></tr></thead>
-                <tbody>
-                    <?php foreach ( $mobile_parity as $row ) : ?>
-                        <tr><td><strong><?php echo esc_html($row->device_type); ?></strong></td><td><?php echo esc_html($row->hit_count); ?></td></tr>
-                    <?php endforeach; ?>
-                </tbody>
-            </table>
-        </div>
-        
-        <div class="wpci-card">
-            <div class="wpci-card-header">
-                <h3><span class="dashicons dashicons-money-alt"></span> 7. Crawl ROI Stats</h3>
-            </div>
-            <table class="wp-list-table widefat fixed striped">
-                <thead><tr><th>Type</th><th>Value</th></tr></thead>
-                <tbody>
-                    <?php foreach ( array_slice($crawl_roi, 0, 4) as $row ) : ?>
-                        <tr><td><?php echo esc_html(ucfirst($row->post_type)); ?></td><td><span class="wpci-badge <?php echo ($row->roi_value == 'High') ? 'green' : 'blue'; ?>"><?php echo esc_html($row->roi_value); ?></span></td></tr>
-                    <?php endforeach; ?>
-                </tbody>
-            </table>
-        </div>
-    </div>
-
-    <!-- Final Path Row -->
-    <div class="wpci-grid full-grid">
-        <div class="wpci-card">
-            <div class="wpci-card-header">
-                <h3><?php echo $icons['path']; ?> 3. Googlebot Crawl Path Reconstruction</h3>
-                <span class="wpci-badge blue">Vision</span>
-            </div>
-            <div class="sessions-container">
-                <?php if ( ! empty( $bot_sessions ) ) : ?>
-                    <?php foreach ( array_slice($bot_sessions, 0, 3) as $session ) : ?>
-                        <div class="session-path">
-                            <div class="session-header"><strong><?php echo esc_html( $session['bot'] ); ?></strong> &bull; <?php echo esc_html( $session['ip'] ); ?></div>
-                            <div class="path-flow">
-                                <?php foreach ( array_slice($session['path'], 0, 6) as $index => $hit ) : ?>
-                                    <div class="path-step">
-                                        <span class="step-url"><?php echo esc_html( wp_parse_url( $hit->url, PHP_URL_PATH ) ); ?></span>
-                                        <span class="step-meta"><?php echo esc_html( date( 'H:i', strtotime( $hit->timestamp ) ) ); ?></span>
-                                    </div>
-                                    <?php if ( $index < count( array_slice($session['path'], 0, 6) ) - 1 ) : ?><span class="step-arrow">&rarr;</span><?php endif; ?>
-                                <?php endforeach; ?>
-                            </div>
-                        </div>
-                    <?php endforeach; ?>
-                <?php endif; ?>
-            </div>
-        </div>
+    <div class="wpci-tab-content">
+        <?php
+        switch ( $current_tab ) {
+            case 'bots':
+                include WPCI_PATH . 'includes/views/partials/bots.php';
+                break;
+            case 'content':
+                include WPCI_PATH . 'includes/views/partials/content.php';
+                break;
+            case 'performance':
+                include WPCI_PATH . 'includes/views/partials/performance.php';
+                break;
+            case 'overview':
+            default:
+                include WPCI_PATH . 'includes/views/partials/overview.php';
+                break;
+        }
+        ?>
     </div>
 
     <div class="wpci-actions" style="display: flex; gap: 15px; margin-top: 20px;">

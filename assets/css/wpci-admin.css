@@ -30,8 +30,49 @@
 	font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
 	color: var(--wpci-text-main);
 	max-width: 1400px;
-	margin: 20px auto;
-	padding-right: 20px;
+	margin: 20px 20px 20px 0;
+}
+
+/* Tabs Styling */
+.wpci-nav-tabs {
+	border-bottom: 2px solid var(--wpci-border);
+	background: #fff;
+	padding: 10px 15px 0;
+	border-radius: var(--wpci-radius) var(--wpci-radius) 0 0;
+	margin-bottom: 30px !important;
+}
+
+.wpci-nav-tabs .nav-tab {
+	border: none;
+	background: transparent;
+	font-weight: 600;
+	font-size: 14px;
+	color: var(--wpci-text-muted);
+	padding: 12px 20px;
+	margin: 0;
+	transition: all 0.3s ease;
+	position: relative;
+}
+
+.wpci-nav-tabs .nav-tab:hover {
+	color: var(--wpci-primary);
+	background: var(--wpci-primary-light);
+}
+
+.wpci-nav-tabs .nav-tab-active {
+	color: var(--wpci-primary) !important;
+	background: transparent !important;
+}
+
+.wpci-nav-tabs .nav-tab-active::after {
+	content: '';
+	position: absolute;
+	bottom: 0;
+	left: 0;
+	width: 100%;
+	height: 3px;
+	background: var(--wpci-primary);
+	border-radius: 3px 3px 0 0;
 }
 
 .wpci-dashboard h1 {
